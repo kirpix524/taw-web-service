@@ -1,0 +1,18 @@
+{
+  "name": "expressapp",
+  "version": "4.15.0",
+  "dependencies": {
+    "express": "^4.15.0",
+    "body-parser": "~1.15.2",
+    "legacy-encoding": "^3.0.0",
+    "nconf":"^0.8.4",
+    "mysql":"^2.11.1",
+    "winston":"^2.3.1",
+    "winston-daily-rotate-file":"^1.4.4"
+  },
+  "scripts": {
+    "start": "NODE_ENV=development NODE_PATH=. node --harmony-async-await index.js",
+    "tsc": "tsc",
+    "tsc:w": "tsc -w"
+  }
+}

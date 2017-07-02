@@ -1,0 +1,30 @@
+{
+  "server":{
+    "ip":"192.168.1.98",
+    "port":8888
+  },
+
+  "mysql":{
+    "host" : "192.168.111.151",
+    "port" : 3306,
+    "user" : "node",
+    "password" : "node",
+    "database" : "autokut"
+  },
+
+  "msm":{
+    "ip" : "192.168.1.16",
+    "port" : 6569,
+    "vol" : "DDD",
+    "uci" : "DDD"
+  },
+
+  "testcon":{
+    "ip" : "192.168.126.26",
+    "port" : 502
+  },
+
+  "partQuant":125,
+  "stepInterval":2000,
+  "modbusConnectTimeout":4000
+}
