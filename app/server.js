@@ -39,6 +39,8 @@ router.post('/getLogs', function (req, res, next) {
 
 router.post('/addMove', function (req, res, next) {
 	let config = JSON.parse(req.body.req);;
+	console.log('/addOst');
+	console.dir(config);
 	addMove(config)
 		.then(result => {
 			res.status(202).send(JSON.stringify(result));
@@ -50,6 +52,8 @@ router.post('/addMove', function (req, res, next) {
 
 router.post('/addOst', function (req, res, next) {
 	let config = JSON.parse(req.body.req);
+	console.log('/addOst');
+	console.dir(config);
 	addOst(config)
 		.then(result => {
 			res.status(202).send(JSON.stringify(result));
@@ -60,6 +64,7 @@ router.post('/addOst', function (req, res, next) {
 });
 
 router.post('/init', function (req, res, next) {
+	console.log('/init');
 	init();
 	res.status(202).send('ok');
 });
