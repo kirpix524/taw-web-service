@@ -22,6 +22,10 @@ router.get('/', function (req, res, next) {
 	res.sendfile('../index.html');
 });
 
+router.get('/report', function (req, res, next) {
+	res.sendfile('../index.html');
+});
+
 
 router.post('/getLogs', function (req, res, next) {
 	getLogs(req)
