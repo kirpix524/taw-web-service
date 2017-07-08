@@ -39,7 +39,7 @@ router.post('/getLogs', function (req, res, next) {
 
 router.post('/addMove', function (req, res, next) {
 	console.log('/addMove');
-	console.dir(req);
+	console.dir(req.body.req);
 	let config = JSON.parse(req.body.req);
 	addMove(config)
 		.then(result => {
@@ -52,7 +52,7 @@ router.post('/addMove', function (req, res, next) {
 
 router.post('/addOst', function (req, res, next) {
 	console.log('/addOst');
-	console.dir(req);
+	console.dir(req.body.req);
 	let config = JSON.parse(req.body.req);
 	addOst(config)
 		.then(result => {
