@@ -38,8 +38,8 @@ router.post('/getLogs', function (req, res, next) {
 });
 
 router.post('/addMove', function (req, res, next) {
-	let move = req.body.move;
-	addMove(move)
+	let config = JSON.parse(req.body.req);;
+	addMove(config)
 		.then(result => {
 			res.status(202).send(JSON.stringify(result));
 		}, (err) => {
@@ -49,8 +49,8 @@ router.post('/addMove', function (req, res, next) {
 });
 
 router.post('/addOst', function (req, res, next) {
-	let ost = req.body.ost;
-	addOst(ost)
+	let config = JSON.parse(req.body.req);
+	addOst(config)
 		.then(result => {
 			res.status(202).send(JSON.stringify(result));
 		}, (err) => {
@@ -157,7 +157,7 @@ function readLogsFromFile(fileName, pars, logs) {
 
 function addMove(move) {
 	return new Promise((resolve, reject) => {
-		let query = "INSERT INTO movements SET movements.DtTm = CURRENT_TIMESTAMP, movements.NameNom='" + move.nameNom + ", movements.Quant='" + move.quant + "', movements.TypeMove='" + move.typeMove + "'";
+		let query = "INSERT INTO movements SET movements.DtTm = CURRENT_TIMESTAMP, movements.Movement='" + move.movement + "'";
 		mysql.query(query, function (err, res) {
 			if (err) {
 				reject(err);
