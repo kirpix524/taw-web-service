@@ -19,7 +19,7 @@ router.use(function (req, res, next) {
 });
 
 router.get('/', function (req, res, next) {
-	res.sendFile('../index.html');
+	res.send('ok');
 });
 
 router.get('/report', function (req, res, next) {
