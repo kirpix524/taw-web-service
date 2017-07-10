@@ -39,7 +39,8 @@ router.get('/', function (req, res, next) {
 });
 
 router.get('/report', function (req, res, next) {
-	res.sendFile('../index.html');
+	let path = require('path');
+	res.sendFile(path.resolve("index.html"));
 });
 
 
