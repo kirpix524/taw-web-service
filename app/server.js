@@ -10,20 +10,20 @@ let fs = require('fs');
 
 let arrml = [];
 
-let sprNom={
-	'0':"Доска шлифованая 50см",
-	'1':"Доска шлифованая 100см",
-	'2':"Ручка медная",
-	'3':"Профиль алюминиевый 100см",
-	'4':"Саморез 40мм (100шт)"
+let sprNom = {
+	'0': "Доска шлифованая 50см",
+	'1': "Доска шлифованая 100см",
+	'2': "Ручка медная",
+	'3': "Профиль алюминиевый 100см",
+	'4': "Саморез 40мм (100шт)"
 }
 
-let sprAct={
-	'0':"Получение комплектующих со склада",
-    '1':"Шлифовка",
-    '2':"Распил",
-    '3':"Сборка",
-    '4':"Передача готового изделия на склад"
+let sprAct = {
+	'0': "Получение комплектующих со склада",
+	'1': "Шлифовка",
+	'2': "Распил",
+	'3': "Сборка",
+	'4': "Передача готового изделия на склад"
 }
 
 router.use(function (req, res, next) {
@@ -35,12 +35,19 @@ router.use(function (req, res, next) {
 });
 
 router.get('/', function (req, res, next) {
-	res.send('ok');
+	let strOut = '<html><head><title>Сервер торговля и склад</title><meta charset="UTF-8"><h1>Сервер торговля и склад</h1></head><body><h1>Сервер торговля и склад</h1></body></html>';
+	res.send(strOut);
 });
 
 router.get('/report', function (req, res, next) {
-	let path = require('path');
-	res.sendFile(path.resolve("index.html"));
+	// let path = require('path');
+	// res.sendFile(path.resolve("index.html"));
+	getReport()
+		.then(result => {
+			res.send(getHTML(result));
+		}, (err) => {
+			res.status(500).send(err);
+		})
 });
 
 
@@ -179,19 +186,19 @@ function readLogsFromFile(fileName, pars, logs) {
 
 function addMove(move) {
 	return new Promise((resolve, reject) => {
-		let movement="";
-		switch(move.typeMove) {
+		let movement = "";
+		switch (move.typeMove) {
 			case "com":
-				movement="Для номенклатуры "+sprNom[move.codeNom]+" выполнен приход "+move.quant;
+				movement = "Для номенклатуры " + sprNom[move.codeNom] + " выполнен приход " + move.quant;
 				break
 			case "exp":
-				movement="Для номенклатуры "+sprNom[move.codeNom]+" выполнен расход "+move.quant;
+				movement = "Для номенклатуры " + sprNom[move.codeNom] + " выполнен расход " + move.quant;
 				break
 			case "start":
-				movement="Начато выполнение действия "+sprAct[move.codeAct];
+				movement = "Начато выполнение действия " + sprAct[move.codeAct];
 				break
 			case "end":
-				movement="Завершено выполнение действия "+sprAct[move.codeAct];
+				movement = "Завершено выполнение действия " + sprAct[move.codeAct];
 				break
 			default:
 				reject("unknown typeMove");
@@ -213,7 +220,7 @@ function addOst(ost) {
 	return new Promise((resolve, reject) => {
 		let nameNom = sprNom[ost.codeNom];
 		let query = "INSERT INTO ost SET ost.NameNom='" + nameNom + "', ost.CodeNom='" + ost.codeNom + "', ost.CurOst=" + ost.curOst + " ";
-		query = query + " ON DUPLICATE KEY UPDATE ost.CurOst=" + ost.curOst+", ost.NameNom='" + nameNom;
+		query = query + " ON DUPLICATE KEY UPDATE ost.CurOst=" + ost.curOst + ", ost.NameNom='" + nameNom;
 		mysql.query(query, function (err, res) {
 			if (err) {
 				reject(err);
@@ -223,6 +230,40 @@ function addOst(ost) {
 		});
 	});
 
+}
+
+function getReport() {
+	return new Promise((resolve, reject) => {
+		let query = "SELECT * FROM ost"
+		mysql.query(query, function (err, res) {
+			if (err) {
+				reject(err);
+				return;
+			}
+			if (!("length" in res)) {
+				resolve([]);
+				return
+			}
+			let dataArray = [];
+			for (let i = 0; i < res.length; i++) {
+				let dataRow = res[i];
+				if (dataRow.curost > 0) {
+					dataArray.push(dataRow.namenom + ": " + dataRow.curost)
+				}
+			}
+			resolve(dataArray);
+		});
+	});
+}
+
+function getHTML(dataArray) {
+
+	let html = '<html><head><title>Сервер торговля и склад</title><meta charset="UTF-8"><h1>Сервер торговля и склад</h1></head><body>';
+	for (let i = 0; i < dataArray.length; i++) {
+		html = html + dataArray[i] + '</br>';
+	}
+	html = html + '</body></html>';
+	return html
 }
 
 function init() {
