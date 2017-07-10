@@ -5,9 +5,9 @@
   },
 
   "mysql":{
-    "host" : "127.0.0.1",
+    "host" : "92.53.120.131",
     "port" : 3306,
-    "user" : "node",
+    "user" : "admin",
     "password" : "1234",
     "database" : "tradeandwarehouse"
   }

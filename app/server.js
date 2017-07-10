@@ -10,6 +10,22 @@ let fs = require('fs');
 
 let arrml = [];
 
+let sprNom={
+	'0':"Доска шлифованая 50см",
+	'1':"Доска шлифованая 100см",
+	'2':"Ручка медная",
+	'3':"Профиль алюминиевый 100см",
+	'4':"Саморез 40мм (100шт)"
+}
+
+let sprAct={
+	'0':"Получение комплектующих со склада",
+    '1':"Шлифовка",
+    '2':"Распил",
+    '3':"Сборка",
+    '4':"Передача готового изделия на склад"
+}
+
 router.use(function (req, res, next) {
 	res.setHeader('Access-Control-Allow-Origin', '*');
 	res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
@@ -162,7 +178,25 @@ function readLogsFromFile(fileName, pars, logs) {
 
 function addMove(move) {
 	return new Promise((resolve, reject) => {
-		let query = "INSERT INTO movements SET movements.DtTm = CURRENT_TIMESTAMP, movements.Movement='" + move.movement + "'";
+		let movement="";
+		switch(move.typeMove) {
+			case "com":
+				movement="Для номенклатуры "+sprNom[move.codeNom]+" выполнен приход "+move.quant;
+				break
+			case "exp":
+				movement="Для номенклатуры "+sprNom[move.codeNom]+" выполнен расход "+move.quant;
+				break
+			case "start":
+				movement="Начато выполнение действия "+sprAct[move.codeAct];
+				break
+			case "end":
+				movement="Завершено выполнение действия "+sprAct[move.codeAct];
+				break
+			default:
+				reject("unknown typeMove");
+				return
+		}
+		let query = "INSERT INTO movement SET movement.DtTm = CURRENT_TIMESTAMP, movement.Movement='" + movement + "'";
 		mysql.query(query, function (err, res) {
 			if (err) {
 				reject(err);
@@ -176,8 +210,9 @@ function addMove(move) {
 
 function addOst(ost) {
 	return new Promise((resolve, reject) => {
-		let query = "INSERT INTO ost SET ost.NameNom='" + ost.nameNom + ", ost.CodeNom='" + ost.codeNom + "', ost.CurOst=" + ost.curOst + " ";
-		query = query + " ON DUPLICATE KEY UPDATE ost.CurOst=" + ost.curOst;
+		let nameNom = sprNom[ost.codeNom];
+		let query = "INSERT INTO ost SET ost.NameNom='" + nameNom + "', ost.CodeNom='" + ost.codeNom + "', ost.CurOst=" + ost.curOst + " ";
+		query = query + " ON DUPLICATE KEY UPDATE ost.CurOst=" + ost.curOst+", ost.NameNom='" + nameNom;
 		mysql.query(query, function (err, res) {
 			if (err) {
 				reject(err);
@@ -192,7 +227,7 @@ function addOst(ost) {
 function init() {
 	let query = "DELETE from ost";
 	mysql.query(query);
-	query = "DELETE from movements";
+	query = "DELETE from movement";
 	mysql.query(query);
 }
 
