@@ -42,9 +42,15 @@ router.get('/', function (req, res, next) {
 router.get('/report', function (req, res, next) {
 	// let path = require('path');
 	// res.sendFile(path.resolve("index.html"));
-	getReport()
-		.then(result => {
-			res.send(getHTML(result));
+	getOst()
+		.then(arrOst => {
+			getMoves()
+				.then(arrMoves => {
+					res.send(getHTML(arrOst, arrMoves));
+				}, (err) => {
+					res.status(500).send(err);
+				})
+
 		}, (err) => {
 			res.status(500).send(err);
 		})
@@ -220,7 +226,8 @@ function addOst(ost) {
 	return new Promise((resolve, reject) => {
 		let nameNom = sprNom[ost.codeNom];
 		let query = "INSERT INTO ost SET ost.NameNom='" + nameNom + "', ost.CodeNom='" + ost.codeNom + "', ost.CurOst=" + ost.curOst + " ";
-		query = query + " ON DUPLICATE KEY UPDATE ost.CurOst=" + ost.curOst + ", ost.NameNom='" + nameNom;
+		query = query + " ON DUPLICATE KEY UPDATE ost.CurOst=" + ost.curOst + ", ost.NameNom='" + nameNom + "'";
+		console.log(query);
 		mysql.query(query, function (err, res) {
 			if (err) {
 				reject(err);
@@ -232,7 +239,7 @@ function addOst(ost) {
 
 }
 
-function getReport() {
+function getOst() {
 	return new Promise((resolve, reject) => {
 		let query = "SELECT * FROM ost"
 		mysql.query(query, function (err, res) {
@@ -256,11 +263,37 @@ function getReport() {
 	});
 }
 
-function getHTML(dataArray) {
+function getMoves() {
+	return new Promise((resolve, reject) => {
+		let query = "select DATE_FORMAT(CONVERT_TZ(movement.DtTm,'SYSTEM','+04:00'),'%d.%m.%Y %k:%i:%s') as `DtTm`,movement.Movement from movement"
+		mysql.query(query, function (err, res) {
+			if (err) {
+				reject(err);
+				return;
+			}
+			if (!("length" in res)) {
+				resolve([]);
+				return
+			}
+			let dataArray = [];
+			for (let i = 0; i < res.length; i++) {
+				let dataRow = res[i];
+				dataArray.push(dataRow.DtTm + " " + dataRow.Movement)
+			}
+			resolve(dataArray);
+		});
+	});
+}
 
+function getHTML(ostArray, movesArray) {
 	let html = '<html><head><title>Сервер торговля и склад</title><meta charset="UTF-8"><h1>Сервер торговля и склад</h1></head><body>';
-	for (let i = 0; i < dataArray.length; i++) {
-		html = html + dataArray[i] + '</br>';
+	html = html + '<h2>Текущие остатки</h2>';
+	for (let i = 0; i < ostArray.length; i++) {
+		html = html + movesArray[i] + '</br>';
+	}
+	html = html + '<h2>Моменты фиксации</h2>';
+	for (let i = 0; i < movesArray.length; i++) {
+		html = html + movesArray[i] + '</br>';
 	}
 	html = html + '</body></html>';
 	return html
