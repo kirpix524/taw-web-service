@@ -295,7 +295,7 @@ function getOst() {
 			for (let i = 0; i < res.length; i++) {
 				let dataRow = res[i];
 				if (dataRow.curost > 0) {
-					dataArray.push(dataRow.namenom + ": " + dataRow.curost)
+					dataArray.push({'namenom':dataRow.namenom, 'curost':dataRow.curost})
 				}
 			}
 			resolve(dataArray);
@@ -318,7 +318,7 @@ function getMoves() {
 			let dataArray = [];
 			for (let i = 0; i < res.length; i++) {
 				let dataRow = res[i];
-				dataArray.push(dataRow.DtTm + " " + dataRow.Movement)
+				dataArray.push({'DtTm':dataRow.DtTm, 'Movement':dataRow.Movement})
 			}
 			resolve(dataArray);
 		});
@@ -326,15 +326,25 @@ function getMoves() {
 }
 
 function getHTML(ostArray, movesArray) {
-	let html = '<html><head><title>Сервер торговля и склад</title><meta charset="UTF-8"><h1>Сервер торговля и склад</h1></head><body>';
-	html = html + '<h2>Текущие остатки</h2>';
+	let html = "<html><head><title>Сервер торговля и склад</title><meta charset='UTF-8'><h1>Сервер торговля и склад</h1></head><body>";
+	html = html + '<h1>Текущие остатки</h1>';
+	html = html + '<table border="1" cellspacing="2" cellpadding="5" style="max-width:700px; font-size:2em">';
 	for (let i = 0; i < ostArray.length; i++) {
-		html = html + ostArray[i] + '</br>';
+		html = html + '<tr>';
+		html = html + ' <td width=80%>' + ostArray[i].namenom + '</td>';
+		html = html + ' <td width=20%>' + ostArray[i].curost + '</td>';
+		html = html + '</tr>';
 	}
-	html = html + '<h2>Моменты фиксации</h2>';
+	html = html + '</table>';
+	html = html + '<table border="1" cellspacing="2" cellpadding="5" style="max-width:700px; font-size:2em">';
+	html = html + '<h1>Моменты фиксации</h1>';
 	for (let i = 0; i < movesArray.length; i++) {
-		html = html + movesArray[i] + '</br>';
+		html = html + '<tr>';
+		html = html + ' <td width=30%>' + movesArray[i].DtTm + '</td>';
+		html = html + ' <td width=70%>' + movesArray[i].Movement + '</td>';
+		html = html + '</tr>';
 	}
+	html = html + '</table>';
 	html = html + '</body></html>';
 	return html
 }
