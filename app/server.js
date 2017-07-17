@@ -356,4 +356,9 @@ function init() {
 	mysql.query(query);
 }
 
+setInterval(function () {
+    mysql.query('SELECT 1');
+	console.log('ping');
+}, 60000);
+
 module.exports = router;
