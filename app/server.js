@@ -358,7 +358,6 @@ function init() {
 
 setInterval(function () {
     mysql.query('SELECT 1');
-	console.log('ping');
 }, 60000);
 
 module.exports = router;
