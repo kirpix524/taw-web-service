@@ -6,9 +6,128 @@ let sf = require('../lib/stringfunctions');
 let mysql = require('../services/mysqlClient');
 let fs = require('fs');
 
+router.use(function (req, res, next) {
+	res.setHeader('Access-Control-Allow-Origin', '*');
+	res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+	res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+	res.setHeader('Access-Control-Allow-Credentials', true);
+	next();
+});
 
+router.post('/getSprDolgn', function (req, res, next) {
+	console.log('/getSprDolgn');
+	let answer = {}
+	getSprDolgn()
+		.then(result => {
+			answer.sprDolgn = result;
+			getSprRoles().then(result => {
+				answer.sprRoles = result;
+				console.dir(answer);
+				res.status(202).send(JSON.stringify(answer));
+			}, (err) => {
+				log.error(err);
+				res.status(500).send(err);
+			})
+		}, (err) => {
+			log.error(err);
+			res.status(500).send(err);
+		});
+});
 
-let arrml = [];
+router.post('/saveDolgn', function (req, res, next) {
+	let config = req.body;
+	saveDolgn(config)
+		.then(result => {
+			answer = {};
+			if (config.mode == "new") {
+				answer.id_dolgn = result.id_dolgn;
+			}
+			res.status(202).send(JSON.stringify(answer));
+		}, (err) => {
+			log.error(err);
+			res.status(500).send(err);
+		});
+});
+
+function getSprDolgn() {
+	return new Promise((resolve, reject) => {
+		let query = "SELECT d.*,r.name_role  FROM dolgn d LEFT JOIN roles r ON d.id_role=r.id_role"
+		mysql.query(query, function (err, res) {
+			if (err) {
+				reject(err);
+				return;
+			}
+			if (!("length" in res)) {
+				resolve([]);
+				return
+			}
+			let dataArray = [];
+			for (let i = 0; i < res.length; i++) {
+				let dataRow = res[i];
+				dataArray.push({
+					'id_dolgn': dataRow.id_dolgn,
+					'name_dolgn': dataRow.name_dolgn,
+					'id_role': dataRow.id_role,
+					'name_role': dataRow.name_role,
+					'actual': dataRow.actual
+				})
+			}
+			resolve(dataArray);
+		});
+	});
+}
+
+function getSprRoles() {
+	return new Promise((resolve, reject) => {
+		let query = "SELECT * FROM roles"
+		mysql.query(query, function (err, res) {
+			if (err) {
+				reject(err);
+				return;
+			}
+			if (!("length" in res)) {
+				resolve([]);
+				return
+			}
+			let dataArray = [];
+			for (let i = 0; i < res.length; i++) {
+				let dataRow = res[i];
+				dataArray.push({
+					'id_role': dataRow.id_role,
+					'name_role': dataRow.name_role,
+				})
+			}
+			resolve(dataArray);
+		});
+	});
+}
+
+function saveDolgn(config) {
+	return new Promise((resolve, reject) => {
+		if (config.mode=="new") {
+			let query = "INSERT INTO dolgn (name_dolgn,id_role,actual) VALUES ('"+config.dolgn.name_dolgn+"', "+config.dolgn.id_role+", '"+config.dolgn.actual+"');"
+			query = query+" SELECT last_insert_id()  'id_dolgn';"
+		} else {
+			let query = "UPDATE dolgn d SET (d.name_dolgn='"+config.dolgn.name_dolgn+"',d.id_role="+config.dolgn.role+",actual='"+config.dolgn.actual+"' WHERE d.id_dolgn="+config.dolgn.id_dolgn+";"
+		}
+		mysql.query(query, function (err, res) {
+			if (err) {
+				reject(err);
+				return;
+			}
+			if (config.mode!="new") {resolve(); return;}
+			if (!("length" in res)) {
+				reject("Не удалось получить код новой должности!");
+				return;
+			}
+			resolve(res[0].id_dolgn);
+			return;
+		});
+	});
+}
+
+// С демонстрационного сервера, может пригодиться
+// 
 
 let sprNom = {
 	'0': "Доска шлифованая 50см",
@@ -25,14 +144,6 @@ let sprAct = {
 	'3': "Сборка",
 	'4': "Передача готового изделия на склад"
 }
-
-router.use(function (req, res, next) {
-	res.setHeader('Access-Control-Allow-Origin', '*');
-	res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-	res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-	res.setHeader('Access-Control-Allow-Credentials', true);
-	next();
-});
 
 router.get('/', function (req, res, next) {
 	let strOut = '<html><head><title>Сервер торговля и склад</title><meta charset="UTF-8"><h1>Сервер торговля и склад</h1></head><body><h1>Сервер торговля и склад</h1></body></html>';
@@ -79,6 +190,19 @@ router.get('/excel', function (req, res, next) {
 	res.status(202).send('ok');
 })
 
+router.post('/addMove', function (req, res, next) {
+	console.log('/addMove');
+	console.dir(req.body.req);
+	let config = JSON.parse(req.body.req);
+	addMove(config)
+		.then(result => {
+			res.status(202).send(JSON.stringify(result));
+		}, (err) => {
+			log.error(err);
+			res.status(500).send(err);
+		});
+});
+
 router.get('/report', function (req, res, next) {
 	// let path = require('path');
 	// res.sendFile(path.resolve("index.html"));
@@ -99,19 +223,6 @@ router.get('/report', function (req, res, next) {
 
 router.post('/getLogs', function (req, res, next) {
 	getLogs(req)
-		.then(result => {
-			res.status(202).send(JSON.stringify(result));
-		}, (err) => {
-			log.error(err);
-			res.status(500).send(err);
-		});
-});
-
-router.post('/addMove', function (req, res, next) {
-	console.log('/addMove');
-	console.dir(req.body.req);
-	let config = JSON.parse(req.body.req);
-	addMove(config)
 		.then(result => {
 			res.status(202).send(JSON.stringify(result));
 		}, (err) => {
@@ -295,7 +406,7 @@ function getOst() {
 			for (let i = 0; i < res.length; i++) {
 				let dataRow = res[i];
 				if (dataRow.curost > 0) {
-					dataArray.push({'namenom':dataRow.namenom, 'curost':dataRow.curost})
+					dataArray.push({ 'namenom': dataRow.namenom, 'curost': dataRow.curost })
 				}
 			}
 			resolve(dataArray);
@@ -318,7 +429,7 @@ function getMoves() {
 			let dataArray = [];
 			for (let i = 0; i < res.length; i++) {
 				let dataRow = res[i];
-				dataArray.push({'DtTm':dataRow.DtTm, 'Movement':dataRow.Movement})
+				dataArray.push({ 'DtTm': dataRow.DtTm, 'Movement': dataRow.Movement })
 			}
 			resolve(dataArray);
 		});
@@ -349,6 +460,8 @@ function getHTML(ostArray, movesArray) {
 	return html
 }
 
+
+
 function init() {
 	let query = "DELETE from ost";
 	mysql.query(query);
@@ -357,7 +470,7 @@ function init() {
 }
 
 setInterval(function () {
-    mysql.query('SELECT 1');
+	mysql.query('SELECT 1');
 }, 60000);
 
 module.exports = router;
