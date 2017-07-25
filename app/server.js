@@ -9,6 +9,8 @@ let sprdolgn = require('./modules/sprdolgn');
 let sprsotr = require('./modules/sprsotr');
 let sprskl = require('./modules/sprskl');
 let sproper = require('./modules/sproper');
+let spredizm = require('./modules/spredizm');
+let sprnomen = require('./modules/sprnomen');
 let googledrive = require('./modules/googledrive');
 
 router.use(function (req, res, next) {
@@ -23,6 +25,8 @@ router.use('/', sprdolgn);
 router.use('/', sprsotr);
 router.use('/', sprskl);
 router.use('/', sproper);
+router.use('/', spredizm);
+router.use('/', sprnomen);
 router.use('/', googledrive);
 
 
